@@ -28,8 +28,6 @@ To track rental data, you need to import the SQL file into your MySQL database:
 
 1. Place the SQL file (e.g., `ebike_rental.sql`) in the root folder of the resource.
 2. Import the SQL file using phpMyAdmin or the MySQL command line.
-   
-
 
 - **Rental Rate and Billing Interval**: In `config.lua`, you can adjust the rental rate by modifying `Config.RentalRate`. You can also change the time interval for billing by setting `Config.BillingInterval`. For example:
 
@@ -54,7 +52,33 @@ Config.UseOxTarget = false -- Set to true if you want to use ox-target instead o
 
 The script is written to automatically switch between the two targeting systems based on this configuration, so ensure to set this parameter according to your preference.
 
-### 5. Starting the Script
+### 5. Configuring Notification System
+This script uses **QBCore's** default notification system (`QBCore:Notify`), but you can configure it to use a custom notification system if desired.
+
+In `config.lua`, add the following configuration:
+
+```lua
+Config.NotificationSystem = 'qbcore' -- Set to 'custom' if you want to use a different notification system
+```
+
+- If `Config.NotificationSystem` is set to `'qbcore'`, the script will use QBCore's built-in notification (`QBCore:Notify`).
+- If set to `'custom'`, you can replace notification calls in the code with your own custom events.
+
+### Notification System Changes in `server.lua`
+In `server.lua`, the notification system is used to notify players of certain events, such as returning the bike or having insufficient funds. The relevant code is structured like this:
+
+```lua
+if Config.NotificationSystem == 'custom' then
+    TriggerClientEvent('yourCustomNotify', src, 'Your custom message here')
+else
+    TriggerClientEvent('QBCore:Notify', src, 'Your QBCore message here', 'type')
+end
+```
+
+- Replace `'yourCustomNotify'` with your custom notification event.
+- Replace `'Your custom message here'` with the desired message for your notification system.
+
+### 6. Starting the Script
 Add the following line to your `server.cfg` to start the script:
 ```cfg
 ensure TSA-ebikerentals
@@ -70,7 +94,7 @@ Feel free to contribute to the script. Pull requests are welcome! To make change
 
 ## Credits
 - Original source code adapted from QB-Rental for use with bikes.
-- 
+
 ## Dependencies
 - [qb-core](https://github.com/qbcore-framework/qb-core)
 - [qb-target](https://github.com/BerkieBb/qb-target)
@@ -81,4 +105,3 @@ I may idk....
 
 ## Screenshots
 soon.tm
-
