@@ -93,9 +93,8 @@ Feel free to contribute to the script. Pull requests are welcome! To make change
 
 ## Dependencies
 - [qb-core](https://github.com/qbcore-framework/qb-core)
-- [qb-target](https://github.com/BerkieBb/qb-target)
-- [ox-target](https://github.com/overextended/ox_target)
-- [qb-banking](https://github.com/qbcore-framework/qb-banking)
+- [qb-target](https://github.com/BerkieBb/qb-target) or [ox-target](https://github.com/overextended/ox_target)
+- [qb-banking](https://github.com/qbcore-framework/qb-banking) or Your own banking script
 
 ## Support
 I may idk....
