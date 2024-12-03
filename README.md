@@ -7,8 +7,7 @@ This repository contains an E-Bike rental script for FiveM. The script allows pl
 ## Features
 - Multiple rental locations using `prop_bikerack_2` and `prop_bikerack_1a`
 - Time-based rental cost calculation ($1 per 5 minutes)
-- Easy-to-use `/returnbike` command for returning the rental
-- Supports both **qb-target** and **ox-target** for interactions
+- - Supports both **qb-target** and **ox-target** for interactions
 - Dynamic billing from player bank accounts using **qb-banking**
 
 ## Requirements
@@ -64,7 +63,7 @@ ensure TSA-ebikerentals
 ## Usage
 - Players can rent an E-Bike by interacting with a rental point (`prop_bikerack_2` and `prop_bikerack_1a`).
 - The rental cost is calculated based on time used and deducted from the player's **bank** account when the bike is returned.
-- Players can return their bike by interacting with any bike rack in the city.
+- Players can return their bike by interacting with any bike rack in the city (the `/returnbike` command has been removed).
 
 ## Configurations for Notification and Banking System
 - You can configure the notification system to use either the default `QBCore:Notify` or your own custom notification event.
