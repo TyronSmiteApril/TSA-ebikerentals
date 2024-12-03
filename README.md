@@ -26,17 +26,8 @@ To track rental data, you need to import the SQL file into your MySQL database:
 
 1. Place the SQL file (e.g., `ebike_rental.sql`) in the root folder of the resource.
 2. Import the SQL file using phpMyAdmin or the MySQL command line.
-   
-- **Rental Rate and Billing Interval**: In `config.lua`, you can adjust the rental rate by modifying `Config.RentalRate`. You can also change the time interval for billing by setting `Config.BillingInterval`. For example:
 
-```lua
-Config.RentalRate = 1 -- Cost per interval
-Config.BillingInterval = 5 -- Interval in minutes for billing
-```
-
-This means players will be charged $1 for every 5 minutes they have the bike rented.
-
-### 3. Configuring Target System
+### 3. Configuring
 This script supports both **qb-target** and **ox-target**. By default, **qb-target** is used, but you can change this easily by modifying the `config.lua` file.
 
 Add the following configuration to your `config.lua`:
@@ -49,6 +40,15 @@ Config.UseOxTarget = false -- Set to true if you want to use ox-target instead o
 - If `Config.UseOxTarget` is set to `true`, the script will use **ox-target** for interactions.
 
 The script is written to automatically switch between the two targeting systems based on this configuration, so ensure to set this parameter according to your preference.
+
+- **Rental Rate and Billing Interval**: In `config.lua`, you can adjust the rental rate by modifying `Config.RentalRate`. You can also change the time interval for billing by setting `Config.BillingInterval`. For example:
+
+```lua
+Config.RentalRate = 1 -- Cost per interval
+Config.BillingInterval = 5 -- Interval in minutes for billing
+```
+
+This means players will be charged $1 for every 5 minutes they have the bike rented.
 
 ### 4. Configurations for Notification and Banking System
 - You can configure the notification system to use either the default `QBCore:Notify` or your own custom notification event.
