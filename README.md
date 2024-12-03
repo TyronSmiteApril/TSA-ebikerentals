@@ -78,7 +78,17 @@ end
 - Replace `'yourCustomNotify'` with your custom notification event.
 - Replace `'Your custom message here'` with the desired message for your notification system.
 
-### 6. Starting the Script
+### 6. Handling Abandoned Bikes
+
+To ensure that rental bikes are returned properly, the script includes a feature that will automatically despawn bikes left unattended, and players will be charged a penalty of $500 if they abandon the bike.
+
+    Bikes are checked every minute to determine if they are abandoned.
+    If no players are detected nearby for a certain period, the bike will be despawned and the player will be charged $500 for failing to return the bike.
+    To adjust the penalty amount, modify Config.AbandonPenalty in config.lua.
+
+This feature helps keep the server clean from unused rental bikes and ensures players take responsibility for their rentals.
+
+### 7. Starting the Script
 Add the following line to your `server.cfg` to start the script:
 ```cfg
 ensure TSA-ebikerentals
