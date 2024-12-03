@@ -1,6 +1,6 @@
 # E-Bike Rental Script for FiveM
 
-[TSA E-Bike Rental]
+![TSA E-Bike Rental]
 
 This repository contains an E-Bike rental script for FiveM. The script allows players to rent an E-Bike from designated rental spots, track rental duration, and return the bikes. Follow the instructions below to add the script to your FiveM server.
 
