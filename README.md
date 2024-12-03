@@ -20,7 +20,7 @@ This script requires the following dependencies:
 You need to add the rental papers item to your server's `qb-core/shared/items.lua` file. Add the following code:
 
 ```lua
-["rentalpapers"] = {"name" = "rentalpapers", "label" = "Rental Papers", "weight" = 50, "type" = "item", "image" = "rentalpapers.png", "unique" = true, "useable" = false, "shouldClose" = false, "combinable" = nil, "description" = "Rental paperwork, Yea its mine."},
+["rentalpapers"] = {"name" = "rentalpapers", "label" = "Rental Papers", "weight" = 50, "type" = "item", "image" = "rentalpapers.png", "unique" = true, "useable" = true, "shouldClose" = false, "combinable" = nil, "description" = "Rental paperwork, Yea its mine."},
 ```
 
 ### 2. Import SQL File
@@ -29,7 +29,7 @@ To track rental data, you need to import the SQL file into your MySQL database:
 1. Place the SQL file (e.g., `ebike_rental.sql`) in the root folder of the resource.
 2. Import the SQL file using phpMyAdmin or the MySQL command line.
 
-### 3. **Rental Rate and Billing Interval**: In `config.lua`, you can adjust the rental rate by modifying `Config.RentalRate`. You can also change the time interval for billing by setting `Config.BillingInterval`. For example:
+- **Rental Rate and Billing Interval**: In `config.lua`, you can adjust the rental rate by modifying `Config.RentalRate`. You can also change the time interval for billing by setting `Config.BillingInterval`. For example:
 
 ```lua
 Config.RentalRate = 1 -- Cost per interval
@@ -38,7 +38,7 @@ Config.BillingInterval = 5 -- Interval in minutes for billing
 
 This means players will be charged $1 for every 5 minutes they have the bike rented.
 
-### 4. Configuring Target System
+### 3. Configuring Target System
 This script supports both **qb-target** and **ox-target**. By default, **qb-target** is used, but you can change this easily by modifying the `config.lua` file.
 
 Add the following configuration to your `config.lua`:
@@ -52,10 +52,10 @@ Config.UseOxTarget = false -- Set to true if you want to use ox-target instead o
 
 The script is written to automatically switch between the two targeting systems based on this configuration, so ensure to set this parameter according to your preference.
 
-### 5. Configuring Notification System
+### 4. Configuring Notification System
 This script uses **QBCore's** default notification system (`QBCore:Notify`), but you can configure it to use a custom notification system if desired.
 
-In `config.lua`, add the following configuration:
+In `config.lua`, edit the following configuration:
 
 ```lua
 Config.NotificationSystem = 'qbcore' -- Set to 'custom' if you want to use a different notification system
@@ -78,17 +78,32 @@ end
 - Replace `'yourCustomNotify'` with your custom notification event.
 - Replace `'Your custom message here'` with the desired message for your notification system.
 
-### 6. Handling Abandoned Bikes
+### 5. Bike Locking and Abandonment Handling
 
-To ensure that rental bikes are returned properly, the script includes a feature that will automatically despawn bikes left unattended, and players will be charged a penalty of $500 if they abandon the bike.
+### Locking and Unlocking Rental Bikes
+Players can now lock and unlock their rental bikes to prevent them from being stolen. To lock or unlock a bike, use the appropriate command or interaction in-game. This feature ensures the player's bike remains secure when left unattended temporarily.
 
-    Bikes are checked every minute to determine if they are abandoned.
-    If no players are detected nearby for a certain period, the bike will be despawned and the player will be charged $500 for failing to return the bike.
-    To adjust the penalty amount, modify Config.AbandonPenalty in config.lua.
+### Handling Abandoned Bikes
+To ensure that rental bikes are returned properly, the script includes a feature that will automatically despawn bikes left unattended for at least 5 minutes, and players will be charged a penalty of $500 if they abandon the bike.
 
-This feature helps keep the server clean from unused rental bikes and ensures players take responsibility for their rentals.
+- Bikes are checked every minute to determine if they are abandoned.
+- If no players are detected nearby for more than 5 minutes, the bike will be despawned and the player will be charged $500 for failing to return the bike.
+- To adjust the penalty amount, modify `Config.AbandonPenalty` in `config.lua`.
 
-### 7. Starting the Script
+### Returning Rental Papers
+When players return their rental bike, the rental papers will automatically be removed from their inventory. This ensures that only active rentals have associated paperwork.
+
+### Using Rental Papers
+Players can use the rental papers item in their inventory to see information about the rental. When used, it will display:
+
+```
+TSA E-Bikes
+Rented by: [player's name]
+```
+
+This allows players to verify that they have the correct rental papers.
+
+### 6. Starting the Script
 Add the following line to your `server.cfg` to start the script:
 ```cfg
 ensure TSA-ebikerentals
