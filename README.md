@@ -29,7 +29,7 @@ To track rental data, you need to import the SQL file into your MySQL database:
 1. Place the SQL file (e.g., `ebike_rental.sql`) in the root folder of the resource.
 2. Import the SQL file using phpMyAdmin or the MySQL command line.
 
-- **Rental Rate and Billing Interval**: In `config.lua`, you can adjust the rental rate by modifying `Config.RentalRate`. You can also change the time interval for billing by setting `Config.BillingInterval`. For example:
+### 3. **Rental Rate and Billing Interval**: In `config.lua`, you can adjust the rental rate by modifying `Config.RentalRate`. You can also change the time interval for billing by setting `Config.BillingInterval`. For example:
 
 ```lua
 Config.RentalRate = 1 -- Cost per interval
