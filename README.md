@@ -66,7 +66,7 @@ ensure TSA-ebikerentals
 - The rental cost is calculated based on time used and deducted from the player's **bank** account when the bike is returned.
 - Players can return their bike by interacting with any bike rack in the city.
 
-## Configurations for Notification System
+## Configurations for Notification and Banking System
 - You can configure the notification system to use either the default `QBCore:Notify` or your own custom notification event.
 - In the `server/main.lua`, locate the notification code and modify it as follows to use your own notification system:
 
@@ -77,6 +77,18 @@ else
     TriggerClientEvent('QBCore:Notify', src, 'You have returned the bike. You were charged $' .. totalCharge, 'success')
 end
 ```
+
+- You can also change the banking system to suit your preference if you do not want to use `qb-banking`. To use a different system, locate the code in `server/main.lua` where money is removed, and modify it accordingly. Example:
+
+```lua
+if Config.BankingSystem == 'custom' then
+    -- Replace with your custom banking function
+    exports['your-banking-system']:RemoveMoney(accountName, totalCharge, 'E-Bike Rental Fee')
+else
+    Player.Functions.RemoveMoney(accountName, totalCharge, 'E-Bike Rental Fee')
+end
+```
+
 
 ### Development
 Feel free to contribute to the script. Pull requests are welcome! To make changes:
