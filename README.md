@@ -18,12 +18,8 @@ This script requires the following dependencies:
 
 ## Installation
 
-### 1. Add Items to `qb-core`
-You need to add the rental papers item to your server's `qb-core/shared/items.lua` file. Add the following code:
-
-```lua
-["rentalpapers"] = {"name" = "rentalpapers", "label" = "Rental Papers", "weight" = 50, "type" = "item", "image" = "rentalpapers.png", "unique" = true, "useable" = false, "shouldClose" = false, "combinable" = nil, "description" = "Rental paperwork, Yea its mine."},
-```
+### 1. Placement of Files
+To add this script to your server, place the entire `TSA-ebikerentals` folder into your server's `resources` directory.
 
 ### 2. Import SQL File
 To track rental data, you need to import the SQL file into your MySQL database:
@@ -54,18 +50,7 @@ Config.UseOxTarget = false -- Set to true if you want to use ox-target instead o
 
 The script is written to automatically switch between the two targeting systems based on this configuration, so ensure to set this parameter according to your preference.
 
-### 4. Starting the Script
-Add the following line to your `server.cfg` to start the script:
-```cfg
-ensure TSA-ebikerentals
-```
-
-## Usage
-- Players can rent an E-Bike by interacting with a rental point (`prop_bikerack_2` and `prop_bikerack_1a`).
-- The rental cost is calculated based on time used and deducted from the player's **bank** account when the bike is returned.
-- Players can return their bike by interacting with any bike rack in the city.
-
-## Configurations for Notification and Banking System
+### 4. Configurations for Notification and Banking System
 - You can configure the notification system to use either the default `QBCore:Notify` or your own custom notification event.
 - In the `server/main.lua`, locate the notification code and modify it as follows to use your own notification system:
 
@@ -87,6 +72,17 @@ else
     Player.Functions.RemoveMoney(accountName, totalCharge, 'E-Bike Rental Fee')
 end
 ```
+
+### 6. Starting the Script
+Add the following line to your `server.cfg` to start the script:
+```cfg
+ensure TSA-ebikerentals
+```
+
+## Usage
+- Players can rent an E-Bike by interacting with a rental point (`prop_bikerack_2` and `prop_bikerack_1a`).
+- The rental cost is calculated based on time used and deducted from the player's **bank** account when the bike is returned.
+- Players can return their bike by interacting with any bike rack in the city.
 
 ## Development
 Feel free to contribute to the script. Pull requests are welcome! To make changes:
