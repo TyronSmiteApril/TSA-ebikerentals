@@ -7,8 +7,9 @@ This repository contains an E-Bike rental script for FiveM. The script allows pl
 ## Features
 - Multiple rental locations using `prop_bikerack_2` and `prop_bikerack_1a`
 - Time-based rental cost calculation ($1 per 5 minutes)
-- - Supports both **qb-target** and **ox-target** for interactions
+- Supports both **qb-target** and **ox-target** for interactions
 - Dynamic billing from player bank accounts using **qb-banking**
+- Automatic removal of bikes left unattended for more than 5 minutes
 
 ## Requirements
 This script requires the following dependencies:
@@ -63,7 +64,8 @@ ensure TSA-ebikerentals
 ## Usage
 - Players can rent an E-Bike by interacting with a rental point (`prop_bikerack_2` and `prop_bikerack_1a`).
 - The rental cost is calculated based on time used and deducted from the player's **bank** account when the bike is returned.
-- Players can return their bike by interacting with any bike rack in the city (the `/returnbike` command has been removed).
+- Players can return their bike by interacting with any bike rack in the city.
+- Bikes left unattended for more than 5 minutes will automatically be removed.
 
 ## Configurations for Notification and Banking System
 - You can configure the notification system to use either the default `QBCore:Notify` or your own custom notification event.
@@ -88,22 +90,62 @@ else
 end
 ```
 
+## Automatic Removal of Unattended Bikes
+The script includes functionality to automatically remove bikes that have been left unattended for more than 5 minutes. This is done to ensure that bikes are not left around the city indefinitely, which helps maintain server performance and a clean game environment. There is no fine imposed for failing to return the bike, but players are encouraged to return bikes to a rack.
 
-### Development
+The following logic is used:
+- A thread runs every 60 seconds to check all rented bikes.
+- If a bike is left unattended for over 5 minutes, and no players are nearby, the bike is automatically removed from the game world.
+
+### Full Code for Automatic Bike Removal
+```lua
+CreateThread(function()
+    while true do
+        Wait(60000) -- Check every 60 seconds
+
+        for plate, spawnTime in pairs(rentedBikes) do
+            local bike = GetClosestVehicle(GetEntityCoords(PlayerPedId()), 10.0, GetHashKey('inductor'), 70)
+            if DoesEntityExist(bike) then
+                local rentalTime = (GetGameTimer() - spawnTime) / 60000 -- Time in minutes since rented
+                if rentalTime > 5 then
+                    local playersNearby = false
+                    local bikeCoords = GetEntityCoords(bike)
+
+                    for _, playerId in ipairs(GetActivePlayers()) do
+                        local playerCoords = GetEntityCoords(GetPlayerPed(playerId))
+                        if #(playerCoords - bikeCoords) < 20.0 then
+                            playersNearby = true
+                            break
+                        end
+                    end
+
+                    if not playersNearby then
+                        DeleteEntity(bike)
+                        rentedBikes[plate] = nil
+                        print('[E-Bike Rental] Removed an unattended rental bike with plate: ' .. plate)
+                    end
+                end
+            end
+        end
+    end
+end)
+```
+
+## Development
 Feel free to contribute to the script. Pull requests are welcome! To make changes:
 - Modify the script as needed and create a pull request to contribute.
 
-### Credits
+## Credits
 - Original source code adapted from QB-Rental for use with bikes.
 
-### Dependencies
+## Dependencies
 - [qb-core](https://github.com/qbcore-framework/qb-core)
 - [qb-target](https://github.com/BerkieBb/qb-target)
 - [ox-target](https://github.com/overextended/ox_target)
 - [qb-banking](https://github.com/qbcore-framework/qb-banking)
 
-### Support
+## Support
 I may idk....
 
-### Screenshots
+## Screenshots
 soon.tm
