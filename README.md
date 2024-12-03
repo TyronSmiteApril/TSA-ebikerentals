@@ -12,7 +12,8 @@ This repository contains an E-Bike rental script for FiveM. The script allows pl
 ## Requirements
 This script requires the following dependencies:
 - [qb-core](https://github.com/qbcore-framework/qb-core)
-- [qb-target](https://github.com/BerkieBb/qb-target) or [ox-target](https://github.com/overextended/ox_target)
+- [qb-target](https://github.com/BerkieBb/qb-target)
+- [ox-target](https://github.com/overextended/ox_target) (optional, if using `Config.UseOxTarget = true`)
 
 ## Installation
 
@@ -39,7 +40,7 @@ Config.BillingInterval = 5 -- Interval in minutes for billing
 This means players will be charged $1 for every 5 minutes they have the bike rented.
 
 ### 3. Configuring Target System
-This script supports both **qb-target** and **ox-target**. By default, **qb-target** is used, but you can change this easily by modifying the `config.lua` file.
+This script supports both **qb-target** and **ox-target**. By default, **qb-target** is used, but you can change this easily by modifying the `config.lua` file. Note that `ox-target` is optional and not required for the script to function with `qb-target`.
 
 Add the following configuration to your `config.lua`:
 
@@ -55,7 +56,7 @@ The script is written to automatically switch between the two targeting systems 
 ### 4. Configuring Notification System
 This script uses **QBCore's** default notification system (`QBCore:Notify`), but you can configure it to use a custom notification system if desired.
 
-In `config.lua`, edit the following configuration:
+In `config.lua`, add the following configuration:
 
 ```lua
 Config.NotificationSystem = 'qbcore' -- Set to 'custom' if you want to use a different notification system
@@ -123,7 +124,7 @@ Feel free to contribute to the script. Pull requests are welcome! To make change
 ## Dependencies
 - [qb-core](https://github.com/qbcore-framework/qb-core)
 - [qb-target](https://github.com/BerkieBb/qb-target)
-- [ox-target](https://github.com/overextended/ox_target)
+- [ox-target](https://github.com/overextended/ox_target) (optional, if using `Config.UseOxTarget = true`)
 
 ## Support
 I may idk....
