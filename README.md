@@ -9,7 +9,6 @@ This repository contains an E-Bike rental script for FiveM. The script allows pl
 - Time-based rental cost calculation ($1 per 5 minutes)
 - Supports both **qb-target** and **ox-target** for interactions
 - Dynamic billing from player bank accounts using **qb-banking**
-- Automatic removal of bikes left unattended for more than 5 minutes
 
 ## Requirements
 This script requires the following dependencies:
@@ -41,7 +40,7 @@ Config.BillingInterval = 5 -- Interval in minutes for billing
 
 This means players will be charged $1 for every 5 minutes they have the bike rented.
 
-### 4. Configuring Target System
+### 3. Configuring Target System
 This script supports both **qb-target** and **ox-target**. By default, **qb-target** is used, but you can change this easily by modifying the `config.lua` file.
 
 Add the following configuration to your `config.lua`:
@@ -55,7 +54,7 @@ Config.UseOxTarget = false -- Set to true if you want to use ox-target instead o
 
 The script is written to automatically switch between the two targeting systems based on this configuration, so ensure to set this parameter according to your preference.
 
-### 5. Starting the Script
+### 4. Starting the Script
 Add the following line to your `server.cfg` to start the script:
 ```cfg
 ensure TSA-ebikerentals
@@ -65,7 +64,6 @@ ensure TSA-ebikerentals
 - Players can rent an E-Bike by interacting with a rental point (`prop_bikerack_2` and `prop_bikerack_1a`).
 - The rental cost is calculated based on time used and deducted from the player's **bank** account when the bike is returned.
 - Players can return their bike by interacting with any bike rack in the city.
-- Bikes left unattended for more than 5 minutes will automatically be removed.
 
 ## Configurations for Notification and Banking System
 - You can configure the notification system to use either the default `QBCore:Notify` or your own custom notification event.
@@ -89,9 +87,6 @@ else
     Player.Functions.RemoveMoney(accountName, totalCharge, 'E-Bike Rental Fee')
 end
 ```
-
-## Automatic Removal of Unattended Bikes
-The script includes functionality to automatically remove bikes that have been left unattended for more than 5 minutes. This is done to ensure that bikes are not left around the city indefinitely, which helps maintain server performance and a clean game environment. There is no fine imposed for failing to return the bike, but players are encouraged to return bikes to a rack.
 
 ## Development
 Feel free to contribute to the script. Pull requests are welcome! To make changes:
