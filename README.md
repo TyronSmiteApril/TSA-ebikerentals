@@ -144,7 +144,7 @@ To ensure that rental bikes are returned properly, the script includes a feature
 
 - Bikes are checked every minute to determine if they are abandoned.
 - If no players are detected nearby for more than 5 minutes, the bike will be despawned.
-- To adjust the removal time, modify the relevant section in the script.
+- To adjust the removal time, modify the `Wait(300000)` inside `client/main.lua`.
 
 ## Usage
 
