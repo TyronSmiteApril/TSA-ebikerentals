@@ -52,20 +52,25 @@ To track rental data, you need to import the SQL file into your MySQL database:
 
 Edit the `config.lua` file to set up rental points and rental rates:
 
-- **Rental Locations**: Use `vector3` format to specify coordinates for rental points.
+- **Rental Locations**: Use `vector4` format to specify coordinates for rental points.
 - **Rental Rate**: Set the rental rate per interval and the interval duration.
+- **Billing Interval**: How long till multiples by your rate ie 300,000(5 minutes) billed $100
 
 ```lua
 Config.BikeRentalPoints = {
-    vector3(104.04, -777.23, 30.48),
-    vector3(102.25, -776.27, 31.49),
-    vector3(96.88, -774.28, 31.49),
-    vector3(95.0, -773.6, 31.51)
+    {model = 'prop_bikerack_1a', coords = vector4(104.04, -777.23, 30.48, 0.0)},
+    {model = 'prop_bikerack_1a', coords = vector4(102.25, -776.27, 31.49, 0.0)},
+    {model = 'prop_bikerack_1a', coords = vector4(96.88, -774.28, 31.49, 0.0)},
+    {model = 'prop_bikerack_1a', coords = vector4(95.0, -773.6, 31.51, 0.0)},
+    {model = 'prop_bikerack_1a', coords = vector4(126.98, -1023.12, 29.36, 0.0)},
+    {model = 'prop_bikerack_1a', coords = vector4(125.79, -1022.71, 29.36, 0.0)},
+    {model = 'prop_bikerack_1a', coords = vector4(129.94, -1024.22, 29.36, 0.0)},
 }
 
-Config.RentalRate = 1 -- Cost per interval
-Config.BillingInterval = 5 -- Interval in minutes for billing
-Config.AbandonPenalty = 500 -- Penalty for not returning the bike
+Config.RentalRate = 100 -- Cost per interval
+Config.BillingInterval = 300000 -- Interval for billing
+Config.UseOxTarget = false -- Set to true if you want to use ox-target instead of qb-target
+Config.NotificationSystem = 'qbcore' -- Set to 'custom' if you want to use a different notification system
 ```
 
 ### 3. Configuring Target System
