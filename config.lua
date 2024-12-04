@@ -14,10 +14,11 @@ Config.BikeRentalPoints = {
     {model = 'prop_bikerack_1a', coords = vector4(298.31, -609.41, 43.42, 244.78)},
     {model = 'prop_bikerack_1a', coords = vector4(299.25, -606.59, 43.4, 245.63)},
     {model = 'prop_bikerack_1a', coords = vector4(297.14, -612.44, 43.42, 249.86)},
+    {model = 'prop_bikerack_1a', coords = vector4(31.73, -164.34, 55.54, 344.86)},
 }
 
 Config.RentalRate = 100 -- Cost per interval
-Config.BillingInterval = 300000 -- Interval in minutes for billing
+Config.BillingInterval = 300000 -- Billing rate 300,000(5 minutes) you're billed $100
 Config.UseOxTarget = false -- Set to true if you want to use ox-target instead of qb-target
 Config.NotificationSystem = 'qbcore' -- Set to 'custom' if you want to use a different notification system
 
