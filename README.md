@@ -136,7 +136,7 @@ ensure TSA-ebikerentals
 
 ### Locking and Unlocking Rental Bikes
 
-Players can now lock and unlock their rental bikes to prevent them from being stolen. To lock or unlock a bike, use the appropriate command or interaction in-game. This feature ensures the player's bike remains secure when left unattended temporarily.
+Players can now lock and unlock their rental bikes to prevent them from being stolen using thirdeye(default L alt). This also requires you to be within a certain distance as you face the bike and 'add/remove a bike lock' which uses /e mechanic to 'attach' it.
 
 ### Handling Abandoned Bikes
 
