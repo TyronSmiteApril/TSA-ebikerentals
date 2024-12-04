@@ -54,7 +54,7 @@ Edit the `config.lua` file to set up rental points and rental rates:
 
 - **Rental Locations**: Use `vector4` format to specify coordinates for rental points.
 - **Rental Rate**: Set the rental rate per interval and the interval duration.
-- **Billing Interval**: How long till multiples by your rate ie 300,000(5 minutes) billed $100
+- **Billing Interval**: Billing rate 300,000(5 minutes) you're billed $100
 
 ```lua
 Config = {}
@@ -76,7 +76,7 @@ Config.BikeRentalPoints = {
 }
 
 Config.RentalRate = 100 -- Cost per interval
-Config.BillingInterval = 300000 -- Interval in minutes for billing
+Config.BillingInterval = 300000 -- Billing rate 300,000(5 minutes) you're billed $100
 Config.UseOxTarget = false -- Set to true if you want to use ox-target instead of qb-target
 Config.NotificationSystem = 'qbcore' -- Set to 'custom' if you want to use a different notification system
 ```
