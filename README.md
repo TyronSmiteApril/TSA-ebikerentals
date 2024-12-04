@@ -178,8 +178,7 @@ no... figure it out!
 ![bike](https://github.com/user-attachments/assets/dc94a27a-3d42-4b92-8fe0-1f381b90e82c)
 ![bike2](https://github.com/user-attachments/assets/ff53603b-32c1-4fb0-8cd9-cdceb451ed0a)
 ![bike3](https://github.com/user-attachments/assets/bf98bb87-cd7d-41dd-86ae-78014c15163b)
-![bike4](https://github.com/user-attachments/assets/15f1e049-59c0-4475-ab0a-0e706ae584c0)
+![bike8](https://github.com/user-attachments/assets/0e43206f-dc10-479a-b664-7de508a32a8f)
+![bike10](https://github.com/user-attachments/assets/96c44d2b-030c-4dd1-8374-ae904ac0c31a)
 ![bike6](https://github.com/user-attachments/assets/8641c635-c143-4abd-9c76-005c69419384)
-
-
 
