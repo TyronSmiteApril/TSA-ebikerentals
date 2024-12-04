@@ -22,7 +22,7 @@ local function spawnBike(target)
     SetEntityHeading(bike, target.coords.w)
     FreezeEntityPosition(bike, true)
     SetEntityAsMissionEntity(bike, true, true)
-    SetVehicleDoorsLocked(bike, 10) -- set to 10 so if you LOCKPICK the bike you cant drive it without renting
+    SetVehicleDoorsLocked(bike, 10) -- prevents bike from being usable if lockpicked
 
     return bike
 end
@@ -37,7 +37,7 @@ local function setupBikeInteractions(bike, targetCoords)
                 label = "Rent an E-Bike",
                 canInteract = function(entity)
                     local plate = GetVehicleNumberPlateText(entity)
-                    return rentedBikes[plate] == nil 
+                    return rentedBikes[plate] == nil
                 end,
             },
             {
@@ -50,32 +50,73 @@ local function setupBikeInteractions(bike, targetCoords)
                     return rentedBikes[plate] ~= nil and rentedBikes[plate].owner == GetPlayerServerId(PlayerId())
                 end,
             },
+            {
+                type = "client",
+                event = "bikeRental:client:toggleLock",
+                icon = "fas fa-lock",
+                label = "Add/Remove Bike Lock",
+                canInteract = function(entity)
+                    local plate = GetVehicleNumberPlateText(entity)
+                    return rentedBikes[plate] ~= nil and rentedBikes[plate].owner == GetPlayerServerId(PlayerId())
+                end,
+            },
         },
         distance = 2.5,
     })
 end
 
-local function returnBikeToRack(bike, originalCoords, originalHeading)
-    SetEntityCoords(bike, originalCoords.x, originalCoords.y, originalCoords.z)
-    SetEntityHeading(bike, originalHeading)
-    FreezeEntityPosition(bike, true)
-    SetVehicleDoorsLocked(bike, 10)
-end
+RegisterNetEvent('bikeRental:client:toggleLock', function(data)
+    local bike = data.entity
+    local plate = GetVehicleNumberPlateText(bike)
+    local playerPed = PlayerPedId()
+    local playerCoords = GetEntityCoords(playerPed)
+    local bikeCoords = GetEntityCoords(bike)
 
-CreateThread(function()
-    if not bikeRentalTargets or type(bikeRentalTargets) ~= "table" then
-        print("^1Error: Config.BikeRentalPoints is invalid. Please define rental locations in config.lua.^0")
+    if #(playerCoords - bikeCoords) > 2.5 then
+        QBCore.Functions.Notify("You must be near the bike to perform this action.", "error")
         return
     end
 
+    if rentedBikes[plate] and rentedBikes[plate].owner == GetPlayerServerId(PlayerId()) then
+
+        TaskTurnPedToFaceEntity(playerPed, bike, 1000)
+        Wait(1000) 
+
+        ExecuteCommand('e mechanic3')
+        Wait(3000) 
+
+        local currentLockState = GetVehicleDoorLockStatus(bike)
+        local newLockState = (currentLockState == 1) and 10 or 1
+        SetVehicleDoorsLocked(bike, newLockState)
+
+        QBCore.Functions.Notify(
+            newLockState == 10 and "Bike Lock Successfully Added" or "Bike Lock Successfully Removed",
+            "success"
+        )
+
+        Wait(1000)
+        ExecuteCommand('e c')
+    else
+        QBCore.Functions.Notify("You do not own this bike.", "error")
+    end
+end)
+
+local function returnBikeToRack(bike, originalCoords, originalHeading)
+    if DoesEntityExist(bike) then
+        SetEntityCoords(bike, originalCoords.x, originalCoords.y, originalCoords.z)
+        SetEntityHeading(bike, originalHeading)
+        FreezeEntityPosition(bike, true)
+        SetVehicleDoorsLocked(bike, 10)
+    end
+end
+
+CreateThread(function()
     ensureModelLoaded(bikeModelHash)
 
     for _, target in pairs(bikeRentalTargets) do
         if target.model and target.coords then
             local bike = spawnBike(target)
             setupBikeInteractions(bike, target.coords)
-        else
-            print("^1Error: Skipping invalid target. Each entry must have 'model' and 'coords'.^0")
         end
     end
 end)
@@ -95,57 +136,27 @@ RegisterNetEvent('bikeRental:client:rentBike', function(data)
         originalCoords = GetEntityCoords(bike),
         originalHeading = GetEntityHeading(bike)
     }
-    TriggerServerEvent('bikeRental:server:rentBike', plate)
     QBCore.Functions.Notify('You have rented an E-Bike. Enjoy your ride!', 'success')
 end)
 
 RegisterNetEvent('bikeRental:client:returnBike', function(data)
     local bike = data.entity
     local plate = GetVehicleNumberPlateText(bike)
-    local rentalRate = Config.RentalRate or 1
-    local billingInterval = Config.BillingInterval or 5
-
-    if not rentedBikes[plate] then
-        QBCore.Functions.Notify('This bike has already been returned or is invalid.', 'error')
-        return
-    end
-
     local rentalData = rentedBikes[plate]
-    local rentalDuration = (GetGameTimer() - rentalData.startTime) / 60000 
-    local totalCharge = math.max(rentalRate, math.floor(rentalDuration / billingInterval) * rentalRate)
+    local totalCharge = math.max(Config.RentalRate or 1, math.floor((GetGameTimer() - rentalData.startTime) / (Config.BillingInterval or 5)) * (Config.RentalRate or 1))
 
     returnBikeToRack(bike, rentalData.originalCoords, rentalData.originalHeading)
-
     rentedBikes[plate] = nil
-
     TriggerServerEvent('bikeRental:server:returnBike', plate, totalCharge)
-    QBCore.Functions.Notify('E-Bike returned.')
+    QBCore.Functions.Notify('E-Bike returned. Total charge: $' .. totalCharge, 'success')
 end)
 
 CreateThread(function()
     while true do
         Wait(300000)
         for plate, rentalData in pairs(rentedBikes) do
-            local bike = GetVehiclePedIsIn(PlayerPedId(), false) 
-            if DoesEntityExist(bike) then
-                local bikeCoords = GetEntityCoords(bike)
-                local playersNearby = false
-
-                for _, playerId in ipairs(GetActivePlayers()) do
-                    local playerCoords = GetEntityCoords(GetPlayerPed(playerId))
-                    if #(playerCoords - bikeCoords) < 20.0 then
-                        playersNearby = true
-                        break
-                    end
-                end
-
-                if not playersNearby and (GetGameTimer() - rentalData.startTime) / 60000 > 5 then
-
-                    returnBikeToRack(bike, rentalData.originalCoords, rentalData.originalHeading)
-                    rentedBikes[plate] = nil
-                    print("[E-Bike Rental] Returned unattended bike to rack: " .. plate)
-                end
-            else
+            if not IsAnyPlayerNearCoords(rentalData.originalCoords, 20.0) then
+                returnBikeToRack(GetVehiclePedIsIn(PlayerPedId(), false), rentalData.originalCoords, rentalData.originalHeading)
                 rentedBikes[plate] = nil
             end
         end
