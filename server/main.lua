@@ -1,30 +1,47 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 
-local rentedBikes = {}
-
-RegisterNetEvent('bikeRental:server:rentBike', function(plate, playerId)
-    local src = source
-    rentedBikes[plate] = {renter = playerId, rentTime = os.time()}
-end)
-
-RegisterNetEvent('bikeRental:server:returnBike', function(plate, totalCharge)
+-- Rent a bike: Insert rental record into the database
+RegisterNetEvent('bikeRental:server:rentBike', function(plate, bikeModel)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
 
     if Player then
-        local accountName = 'bank'
-        if totalCharge > 0 then
-            local success = Player.Functions.RemoveMoney(accountName, totalCharge, 'E-Bike Rental Fee')
-            if success then
-                TriggerClientEvent('QBCore:Notify', src, 'You have been charged $' .. totalCharge .. ' for your rental.', 'success')
-            else
-                TriggerClientEvent('QBCore:Notify', src, 'Unable to deduct money from your account. Please ensure you have enough funds.', 'error')
+        local citizenid = Player.PlayerData.citizenid
+
+        -- Insert rental into the database
+        exports.oxmysql:insert(
+            'INSERT INTO rented_bikes (citizenid, bike_model) VALUES (?, ?)',
+            {citizenid, bikeModel},
+            function(result)
+                if result then
+                    print('[Bike Rental] Rented bike inserted for CitizenID: ' .. citizenid)
+                else
+                    print('[Bike Rental] Failed to insert rental for CitizenID: ' .. citizenid)
+                end
             end
-        else
-            TriggerClientEvent('QBCore:Notify', src, 'No charge for the rental as the duration was too short.', 'success')
-        end
-    else
-        TriggerClientEvent('QBCore:Notify', src, 'An error occurred while returning the bike. Please try again.', 'error')
+        )
     end
-    rentedBikes[plate] = nil
+end)
+
+-- Return a bike: Remove rental record from the database
+RegisterNetEvent('bikeRental:server:returnBike', function(plate)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+
+    if Player then
+        local citizenid = Player.PlayerData.citizenid
+
+        -- Remove rental from the database
+        exports.oxmysql:execute(
+            'DELETE FROM rented_bikes WHERE citizenid = ?',
+            {citizenid},
+            function(affectedRows)
+                if affectedRows > 0 then
+                    print('[Bike Rental] Rental cleared for CitizenID: ' .. citizenid)
+                else
+                    print('[Bike Rental] No rental found to clear for CitizenID: ' .. citizenid)
+                end
+            end
+        )
+    end
 end)
