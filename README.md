@@ -1,175 +1,113 @@
 # E-Bike Rental Script for FiveM
 
-
-
-This repository contains an E-Bike rental script for FiveM. The script allows players to rent an E-Bike from designated rental spots, track rental duration, and return the bikes. Follow the instructions below to add the script to your FiveM server.
+An advanced E-Bike rental system for FiveM, enabling players to rent, lock/unlock, and return bikes with SQL tracking and immersive mechanics.
 
 ## Features
 
-- Multiple rental locations using `prop_bikerack_2` and `prop_bikerack_1a`
-- Time-based rental cost calculation (\$1 per 5 minutes)
-- Easy-to-use interaction with the bike for renting and returning
-- Dynamic billing from player bank accounts using **qb-banking**
-- Supports qb-target and ox-target for interactions
-- Automatic removal of bikes left unattended for more than 5 minutes
+- 🚲 **Multiple Rental Locations**: Add customizable bike racks as rental points.
+- 💰 **Time-Based Billing**: Dynamically calculates rental costs based on usage.
+- 🔐 **Lock/Unlock Functionality**: Players can secure their bikes to prevent theft.
+- 📊 **SQL Integration**: Tracks rentals in a MySQL database for persistence.
+- 🛠️ **Emote Interaction**: Locking/unlocking bikes includes an immersive emote (`/e mechanic3`).
+- 🗺️ **Automatic Cleanup**: Removes abandoned bikes after inactivity (returns to their original rack).
+- 🔄 **Targeting System Support**: Works with both `qb-target` and `ox-target`.
+- 📢 **Custom Notifications**: Uses `QBCore:Notify` for feedback or your preferred notification system.
 
-## Changing the Bike Model
+---
 
-If you would like to use a custom bike model instead of the default `inductor`, you can easily change this in the `main.lua` script. Look for the following line:
-
-```lua
-local bikeModelHash = GetHashKey('inductor')
-```
-
-Replace `'inductor'` with the name of the bike model you want to use. Make sure that the model name matches the one available in your server resources.
-
-For example, if your custom bike model is named `'custom_bike'`, change it to:
-
-```lua
-local bikeModelHash = GetHashKey('custom_bike')
-```
-
-This will make the script spawn your custom bike model instead.
-
-## Requirements
-
-This script requires the following dependencies:
+## 🛠️ Requirements
 
 - [qb-core](https://github.com/qbcore-framework/qb-core)
-- [qb-target](https://github.com/BerkieBb/qb-target) or [ox-target](https://github.com/overextended/ox_target)
+- [qb-target](https://github.com/BerkieBb/qb-target) or [ox-target](https://github.com/overextended/ox_target) (optional)
 - [qb-banking](https://github.com/qbcore-framework/qb-banking)
+- MySQL Database (MariaDB compatible)
 
-## Installation
+---
 
-### 1. Import SQL File
+## 📦 Installation
 
-To track rental data, you need to import the SQL file into your MySQL database:
+### 1. **SQL Setup**
+Import the following SQL schema into your MySQL database:
 
-1. Place the SQL file (`ebike-rental.sql`) in the root folder of the resource.
-2. Import the SQL file using phpMyAdmin or the MySQL command line.
+```sql
+CREATE TABLE `rented_bikes` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `citizenid` varchar(50) NOT NULL,
+    `bike_model` varchar(50) NOT NULL,
+    PRIMARY KEY (`id`)
+);
+```
 
-### 2. Configure Rental Points and Rates
+### 2. Configuration
+Rental Points and Rates
 
-Edit the `config.lua` file to set up rental points and rental rates:
-
-- **Rental Locations**: Use `vector4` format to specify coordinates for rental points.
-- **Rental Rate**: Set the rental rate per interval and the interval duration.
-- **Billing Interval**: Billing rate 300,000(5 minutes) you're billed $100
+Edit the `config.lua` file to define rental locations and billing settings:
 
 ```lua
 Config = {}
 
 Config.BikeRentalPoints = {
     {model = 'prop_bikerack_1a', coords = vector4(104.04, -777.23, 30.48, 0.0)},
-    {model = 'prop_bikerack_1a', coords = vector4(102.25, -776.27, 31.49, 0.0)},
-    {model = 'prop_bikerack_1a', coords = vector4(96.88, -774.28, 31.49, 0.0)},
+    {model = 'prop_bikerack_2', coords = vector4(102.25, -776.27, 31.49, 0.0)},
+    {model = 'prop_bikerack_2', coords = vector4(96.88, -774.28, 31.49, 0.0)},
     {model = 'prop_bikerack_1a', coords = vector4(95.0, -773.6, 31.51, 0.0)},
-    {model = 'prop_bikerack_1a', coords = vector4(126.98, -1023.12, 29.36, 0.0)},
-    {model = 'prop_bikerack_1a', coords = vector4(125.79, -1022.71, 29.36, 0.0)},
-    {model = 'prop_bikerack_1a', coords = vector4(129.94, -1024.22, 29.36, 0.0)},
-    {model = 'prop_bikerack_1a', coords = vector4(298.8, -608.56, 43.42, 241.32)},
-    {model = 'prop_bikerack_1a', coords = vector4(299.73, -605.32, 43.4, 248.07)},
-    {model = 'prop_bikerack_1a', coords = vector4(297.49, -611.54, 43.42, 254.73)},
-    {model = 'prop_bikerack_1a', coords = vector4(298.31, -609.41, 43.42, 244.78)},
-    {model = 'prop_bikerack_1a', coords = vector4(299.25, -606.59, 43.4, 245.63)},
-    {model = 'prop_bikerack_1a', coords = vector4(297.14, -612.44, 43.42, 249.86)},
 }
 
-Config.RentalRate = 100 -- Cost per interval
-Config.BillingInterval = 300000 -- Billing rate 300,000(5 minutes) you're billed $100
-Config.UseOxTarget = false -- Set to true if you want to use ox-target instead of qb-target
-Config.NotificationSystem = 'qbcore' -- Set to 'custom' if you want to use a different notification system
+Config.RentalRate = 100 -- Cost per 5 minutes
+Config.BillingInterval = 300000 -- Billing interval in milliseconds (5 minutes)
+Config.UseOxTarget = false -- Set to true if using ox-target
+Config.NotificationSystem = 'qbcore' -- Default QBCore notifications
 ```
 
-### 3. Configuring Target System
+### 3. Add to `server.cfg`
 
-This script supports both **qb-target** and **ox-target**. By default, **qb-target** is used, but you can change this easily by modifying the `config.lua` file. Note that `ox-target` is optional and not required for the script to function with `qb-target`.
-
-Add the following configuration to your `config.lua`:
-
+Add the resource to your FiveM server by including it in your server.cfg:
 ```lua
-Config.UseOxTarget = false -- Set to true if you want to use ox-target instead of qb-target
-```
-
-- If `Config.UseOxTarget` is set to `false`, the script will use **qb-target** for interactions.
-- If `Config.UseOxTarget` is set to `true`, the script will use **ox-target** for interactions.
-
-The script is written to automatically switch between the two targeting systems based on this configuration, so ensure to set this parameter according to your preference.
-
-### 4. Configuring Notification System
-
-This script uses **QBCore's** default notification system (`QBCore:Notify`), but you can configure it to use a custom notification system if desired.
-
-In `config.lua`, add the following configuration:
-
-```lua
-Config.NotificationSystem = 'qbcore' -- Set to 'custom' if you want to use a different notification system
-```
-
-- If `Config.NotificationSystem` is set to `'qbcore'`, the script will use QBCore's built-in notification (`QBCore:Notify`).
-- If set to `'custom'`, you can replace notification calls in the code with your own custom events.
-
-### Notification System Changes in `server.lua`
-
-In `server.lua`, the notification system is used to notify players of certain events, such as returning the bike or having insufficient funds. The relevant code is structured like this:
-
-```lua
-if Config.NotificationSystem == 'custom' then
-    TriggerClientEvent('yourCustomNotify', src, 'Your custom message here')
-else
-    TriggerClientEvent('QBCore:Notify', src, 'Your QBCore message here', 'type')
-end
-```
-
-- Replace `'yourCustomNotify'` with your custom notification event.
-- Replace `'Your custom message here'` with the desired message for your notification system.
-
-### 5. Starting the Script
-
-Add the following line to your `server.cfg` to start the script:
-
-```cfg
 ensure TSA-ebikerentals
 ```
 
-## Bike Locking and Abandonment Handling
+### 4. Changing the Bike Model
 
-### Locking and Unlocking Rental Bikes
+You can use a custom bike model by editing `main.lua`. Locate this line:
+```lua
+local bikeModelHash = GetHashKey('inductor')
+```
 
-Players can now lock and unlock their rental bikes to prevent them from being stolen using thirdeye(default L alt). This also requires you to be within a certain distance as you face the bike and 'add/remove a bike lock' which uses /e mechanic to 'attach' it.
+Replace `inductor` with your desired bike model (e.g., `custom_bike`).
 
-### Handling Abandoned Bikes
+## 🎮 Usage
 
-To ensure that rental bikes are returned properly, the script includes a feature that will automatically despawn bikes left unattended for at least 5 minutes.&#x20;
+Players can rent a bike by interacting with designated rental points.
+Lock and unlock bikes using the targeting system (with emotes for immersive interaction).
+Return bikes at any bike rack or let them automatically return to their original spawn point after inactivity.
+Costs are automatically deducted from the player's bank account.
 
-- Bikes are checked every minute to determine if they are abandoned.
-- If no players are detected nearby for more than 5 minutes, the bike will be despawned.
-- To adjust the removal time, modify the `Wait(300000)` inside `client/main.lua`.
+## 🔧 Customization
+Notification System
 
-## Usage
+If you'd like to use a custom notification system instead of QBCore's, set `Config.NotificationSystem` to `'custom'` in `config.lua`, and replace notification calls in the code with your own events.
 
-- Players can rent an E-Bike by interacting with a rental point (`prop_bikerack_2` and `prop_bikerack_1a`).
-- The rental cost is calculated based on time used.
-- Players can return their bike by interacting with the bike at any bike rack in the city.
-
-## Development
-
-Feel free to contribute to the script. Pull requests are welcome! To make changes:
-
-- Modify the script as needed and create a pull request to contribute.
-
-## Credits
-
-- Original source code adapted from QB-Rental for use with bikes.
-
-## Dependencies
-
+## 🤝 Dependencies
 - [qb-core](https://github.com/qbcore-framework/qb-core)
 - [qb-target](https://github.com/BerkieBb/qb-target)
 - [ox-target](https://github.com/overextended/ox_target) (optional, if using `Config.UseOxTarget = true`)
 - [qb-banking](https://github.com/qbcore-framework/qb-banking)
 
-## Support
+## 🧹 Cleanup
+
+Bikes left unattended for more than 5 minutes will automatically despawn and return to their original rack.
+SQL records for rentals are cleared when bikes are returned.
+
+## ✨ Credits
+
+Inspired by QB-Rental systems.
+Custom enhancements for bike locking, immersive interactions, and SQL tracking.
+
+## 🛠️ Contributing
+
+I welcome contributions! Fork the repository and submit a pull request to propose changes or enhancements.
+
+## 📧 Support
 no... figure it out!
 
 ## Screenshots
