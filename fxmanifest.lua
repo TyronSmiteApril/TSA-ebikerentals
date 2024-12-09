@@ -4,7 +4,7 @@ game 'gta5'
 name 'TSA-ebikerentals'
 author 'TyronSmiteApril'
 description 'TSA E-Bike Rental'
-version '3.0.4'
+version '3.2.1'
 
 client_scripts {
     'config.lua',
