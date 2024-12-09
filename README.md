@@ -12,7 +12,6 @@ An advanced E-Bike rental system for FiveM, enabling players to rent, lock/unloc
 - 🗺️ **Automatic Cleanup**: Removes abandoned bikes after inactivity (returns to their original rack).
 - 🔄 **Targeting System Support**: Works with both `qb-target` and `ox-target`.
 - 📢 **Custom Notifications**: Uses `QBCore:Notify` for feedback or your preferred notification system.
-- 💵 **Bank Integration**: Charges are directly deducted from the player's bank account upon bike return.
 
 ---
 
@@ -54,11 +53,10 @@ Config.BikeRentalPoints = {
     {model = 'prop_bikerack_1a', coords = vector4(95.0, -773.6, 31.51, 0.0)},
 }
 
-Config.RentalRate = 100 -- Cost per billing interval
+Config.RentalRate = 100 -- Cost per 5 minutes
 Config.BillingInterval = 300000 -- Billing interval in milliseconds (5 minutes)
 Config.UseOxTarget = false -- Set to true if using ox-target
-Config.NotificationSystem = 'qbcore' -- Default QBCore notifications. Set to 'custom' for custom notifications.
-Config.AutoGroundPlacement = true -- Ensures bikes are properly placed on the ground at spawn.
+Config.NotificationSystem = 'qbcore' -- Default QBCore notifications
 ```
 
 ### 3. Add to `server.cfg`
@@ -70,7 +68,7 @@ ensure TSA-ebikerentals
 
 ### 4. Changing the Bike Model
 
-You can use a custom bike model by editing `client/main.lua`. Locate this line:
+You can use a custom bike model by editing `main.lua`. Locate this line:
 ```lua
 local bikeModelHash = GetHashKey('inductor')
 ```
@@ -82,8 +80,7 @@ Replace `inductor` with your desired bike model (e.g., `custom_bike`).
 Players can rent a bike by interacting with designated rental points.
 Lock and unlock bikes using the targeting system (with emotes for immersive interaction).
 Return bikes at any bike rack or let them automatically return to their original spawn point after inactivity.
-Costs are deducted directly from the player's bank account at the time of return. If the player cannot pay, the system will notify them.
-Bikes are now guaranteed to spawn on the ground, even after server restarts.
+Costs are automatically deducted from the player's bank account.
 
 ## 🔧 Customization
 Notification System
@@ -118,8 +115,6 @@ no... figure it out!
 ![bike7](https://github.com/user-attachments/assets/973156ad-a240-4431-98e4-d1ee86f48622)
 ![bike](https://github.com/user-attachments/assets/dc94a27a-3d42-4b92-8fe0-1f381b90e82c)
 ![bike2](https://github.com/user-attachments/assets/ff53603b-32c1-4fb0-8cd9-cdceb451ed0a)
-![bike8](https://github.com/user-attachments/assets/a845db9b-80b4-4af2-a4ef-eaa18a7ba13c)
-![bike10](https://github.com/user-attachments/assets/78d9db61-d338-4dec-a2d9-5153e439eebf)
 ![bike3](https://github.com/user-attachments/assets/bf98bb87-cd7d-41dd-86ae-78014c15163b)
 ![bike4](https://github.com/user-attachments/assets/15f1e049-59c0-4475-ab0a-0e706ae584c0)
 ![bike6](https://github.com/user-attachments/assets/8641c635-c143-4abd-9c76-005c69419384)
