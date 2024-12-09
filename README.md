@@ -12,6 +12,7 @@ An advanced E-Bike rental system for FiveM, enabling players to rent, lock/unloc
 - 🗺️ **Automatic Cleanup**: Removes abandoned bikes after inactivity (returns to their original rack).
 - 🔄 **Targeting System Support**: Works with both `qb-target` and `ox-target`.
 - 📢 **Custom Notifications**: Uses `QBCore:Notify` for feedback or your preferred notification system.
+- 💵 **Bank Integration**: Charges are directly deducted from the player's bank account upon bike return.
 
 ---
 
@@ -53,10 +54,11 @@ Config.BikeRentalPoints = {
     {model = 'prop_bikerack_1a', coords = vector4(95.0, -773.6, 31.51, 0.0)},
 }
 
-Config.RentalRate = 100 -- Cost per 5 minutes
+Config.RentalRate = 100 -- Cost per billing interval
 Config.BillingInterval = 300000 -- Billing interval in milliseconds (5 minutes)
 Config.UseOxTarget = false -- Set to true if using ox-target
-Config.NotificationSystem = 'qbcore' -- Default QBCore notifications
+Config.NotificationSystem = 'qbcore' -- Default QBCore notifications. Set to 'custom' for custom notifications.
+Config.AutoGroundPlacement = true -- Ensures bikes are properly placed on the ground at spawn.
 ```
 
 ### 3. Add to `server.cfg`
@@ -68,7 +70,7 @@ ensure TSA-ebikerentals
 
 ### 4. Changing the Bike Model
 
-You can use a custom bike model by editing `main.lua`. Locate this line:
+You can use a custom bike model by editing `client/main.lua`. Locate this line:
 ```lua
 local bikeModelHash = GetHashKey('inductor')
 ```
@@ -80,7 +82,8 @@ Replace `inductor` with your desired bike model (e.g., `custom_bike`).
 Players can rent a bike by interacting with designated rental points.
 Lock and unlock bikes using the targeting system (with emotes for immersive interaction).
 Return bikes at any bike rack or let them automatically return to their original spawn point after inactivity.
-Costs are automatically deducted from the player's bank account.
+Costs are deducted directly from the player's bank account at the time of return. If the player cannot pay, the system will notify them.
+Bikes are now guaranteed to spawn on the ground, even after server restarts.
 
 ## 🔧 Customization
 Notification System
