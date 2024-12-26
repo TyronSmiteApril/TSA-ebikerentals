@@ -1,193 +1,208 @@
 local QBCore = exports['qb-core']:GetCoreObject()
+
 local rentedBikes = {}
-local bikeRentalTargets = Config.BikeRentalPoints
-local bikeModelHash = GetHashKey('inductor')
+local cooldowns = {} -- Table to store cooldowns for plates
 
--- Event handler storage
-local eventHandlers = {}
+-- Load bike rental targets from config
+local bikeRentalTargets = Config.BikeRentalPoints 
 
--- Ensure the model is loaded
-local function ensureModelLoaded(modelHash)
-    RequestModel(modelHash)
-    while not HasModelLoaded(modelHash) do
-        Wait(10)
-    end
-end
+local bikeModelHash = GetHashKey(Config.BikeModel or 'inductor')
 
--- Spawn a bike
-local function spawnBike(target)
-    local groundZ = target.coords.z
-    local maxRetries = 10 -- Retry up to 10 times to find the ground height
-    local success, adjustedZ
-
-    -- Wait for the world to fully load before trying to calculate ground height
-    Wait(5000) -- Delay for 5 seconds after resource start
-
-    for i = 1, maxRetries do
-        success, adjustedZ = GetGroundZFor_3dCoord(target.coords.x, target.coords.y, target.coords.z + 10.0, false)
-        if success then
-            groundZ = adjustedZ
-            break
-        else
-            Wait(100) -- Wait before retrying
-        end
-    end
-
-    -- Create the bike at the calculated or default height
-    local bike = CreateVehicle(bikeModelHash, target.coords.x, target.coords.y, groundZ, target.coords.w, true, false)
-    SetEntityHeading(bike, target.coords.w)
-    FreezeEntityPosition(bike, true)
-    SetEntityAsMissionEntity(bike, true, true)
-    SetVehicleDoorsLocked(bike, 10) -- Lock bike with level 10
-
-    return bike
-end
-
--- Setup interactions for bikes
-local function setupBikeInteractions(bike, targetCoords)
-    exports['qb-target']:AddTargetEntity(bike, {
-        options = {
-            {
-                type = "client",
-                event = "bikeRental:client:rentBike",
-                icon = "fas fa-bicycle",
-                label = "Rent an E-Bike",
-                canInteract = function(entity)
-                    local plate = GetVehicleNumberPlateText(entity)
-                    return rentedBikes[plate] == nil
-                end,
-            },
-            {
-                type = "client",
-                event = "bikeRental:client:returnBike",
-                icon = "fas fa-undo",
-                label = "Return E-Bike",
-                canInteract = function(entity)
-                    local plate = GetVehicleNumberPlateText(entity)
-                    return rentedBikes[plate] ~= nil and rentedBikes[plate].owner == GetPlayerServerId(PlayerId())
-                end,
-            },
-            {
-                type = "client",
-                event = "bikeRental:client:toggleLock",
-                icon = "fas fa-lock",
-                label = "Add/Remove Bike Lock",
-                canInteract = function(entity)
-                    local plate = GetVehicleNumberPlateText(entity)
-                    return rentedBikes[plate] ~= nil and rentedBikes[plate].owner == GetPlayerServerId(PlayerId())
-                end,
-            },
-        },
-        distance = 2.5,
-    })
-end
-
--- Clean up event handlers
-AddEventHandler('onResourceStop', function(resourceName)
-    if resourceName == GetCurrentResourceName() then
-        for _, handlerId in pairs(eventHandlers) do
-            if handlerId then
-                RemoveEventHandler(handlerId)
-            end
-        end
-    end
-end)
-
--- Register events and store handler IDs
-local function registerEvent(eventName, callback)
-    local handlerId = AddEventHandler(eventName, callback)
-    eventHandlers[eventName] = handlerId
-end
-
--- Toggle bike lock
-registerEvent('bikeRental:client:toggleLock', function(data)
-    local bike = data.entity
-    local plate = GetVehicleNumberPlateText(bike)
-    local playerPed = PlayerPedId()
-    local playerCoords = GetEntityCoords(playerPed)
-    local bikeCoords = GetEntityCoords(bike)
-
-    if #(playerCoords - bikeCoords) > 2.5 then
-        QBCore.Functions.Notify("You must be near the bike to perform this action.", "error")
+CreateThread(function()
+    if not Config.BikeRentalPoints or #Config.BikeRentalPoints == 0 then
+        print("^1[ERROR] No rental points found in Config.BikeRentalPoints!^0")
         return
     end
 
-    if rentedBikes[plate] and rentedBikes[plate].owner == GetPlayerServerId(PlayerId()) then
-        TaskTurnPedToFaceEntity(playerPed, bike, 1000)
-        Wait(1000)
-        ExecuteCommand('e mechanic3')
-        Wait(3000)
+    for _, point in pairs(Config.BikeRentalPoints) do
+        local x, y, z, heading = point.coords.x, point.coords.y, point.coords.z, point.coords.w
 
-        local lockState = GetVehicleDoorLockStatus(bike)
-        local newLockState = (lockState == 1) and 10 or 1
-        SetVehicleDoorsLocked(bike, newLockState)
-        QBCore.Functions.Notify(
-            newLockState == 10 and "Bike Lock Successfully Added" or "Bike Lock Successfully Removed",
-            "success"
-        )
+        -- Ensure the bike model is loaded
+        if not HasModelLoaded(bikeModelHash) then
+            RequestModel(bikeModelHash)
+            while not HasModelLoaded(bikeModelHash) do
+                Wait(10)
+            end
+        end
 
-        Wait(1000)
-        ExecuteCommand('e c')
-    else
-        QBCore.Functions.Notify("You do not own this bike.", "error")
+        -- Find the ground Z coordinate
+        local groundZ = z
+        local attempts = 0
+        while attempts < 10 do -- Try up to 10 times to find the ground Z
+            local foundGround, groundZValue = GetGroundZFor_3dCoord(x, y, z + 10.0, false)
+            if foundGround then
+                groundZ = groundZValue
+                break
+            end
+            Wait(100) -- Wait before retrying
+            attempts = attempts + 1
+        end
+
+        -- Spawn the bike at the rental point
+        local bike = CreateVehicle(bikeModelHash, x, y, groundZ, heading, true, false)
+        SetEntityHeading(bike, heading)
+        FreezeEntityPosition(bike, true) -- Keep the bike stationary until rented
+        SetEntityAsMissionEntity(bike, true, true)
+        SetVehicleDoorsLocked(bike, 10) -- Lock the bike set as 10 so if lockpicked before rented CANT be driven other otions here https://docs.fivem.net/natives/?_0xB664292EAECF7FA6
+
+        -- Add qb-target interaction to the bike
+        exports['qb-target']:AddTargetEntity(bike, {
+            options = {
+                {
+                    type = "client",
+                    event = "bikeRental:client:rentBike",
+                    icon = "fas fa-bicycle",
+                    label = "Rent this E-Bike",
+                    canInteract = function(entity)
+                        local plate = GetVehicleNumberPlateText(entity)
+                        return not rentedBikes[plate] -- Only allow rent if the bike is not rented
+                    end
+                },
+                {
+                    type = "client",
+                    event = "bikeRental:client:returnBike",
+                    icon = "fas fa-undo",
+                    label = "Return this E-Bike",
+                    canInteract = function(entity)
+                        local plate = GetVehicleNumberPlateText(entity)
+                        return rentedBikes[plate] ~= nil and rentedBikes[plate].playerId == GetPlayerServerId(PlayerId()) -- Only allow return if it's the player's rented bike
+                    end
+                },
+                {
+                    type = "client",
+                    event = "bikeRental:client:toggleLock",
+                    icon = "fas fa-lock",
+                    label = "Toggle Lock",
+                    canInteract = function(entity)
+                        local plate = GetVehicleNumberPlateText(entity)
+                        return rentedBikes[plate] ~= nil and rentedBikes[plate].playerId == GetPlayerServerId(PlayerId()) -- Only allow lock/unlock if it's the player's rented bike
+                    end
+                }
+            },
+            distance = 2.5
+        })
     end
 end)
 
--- Rent a bike
-registerEvent('bikeRental:client:rentBike', function(data)
-    local playerPed = PlayerPedId()
+RegisterNetEvent('bikeRental:client:rentBike', function(data)
     local bike = data.entity
     local plate = GetVehicleNumberPlateText(bike)
-    local bikeModel = GetEntityModel(bike)
+    local coords = GetEntityCoords(bike)
+    local heading = GetEntityHeading(bike)
 
-    if rentedBikes[plate] then return end
+    -- Cooldown Check
+    if cooldowns[plate] and (GetGameTimer() - cooldowns[plate]) < 3000 then
+        QBCore.Functions.Notify("Action is on cooldown.", "error")
+        return
+    end
+    cooldowns[plate] = GetGameTimer() -- Set cooldown timer
 
-    FreezeEntityPosition(bike, false)
-    SetVehicleDoorsLocked(bike, 1)
-    SetPedIntoVehicle(playerPed, bike, -1)
+    -- Ensure bike exists and is not already rented
+    if not DoesEntityExist(bike) or rentedBikes[plate] then
+        QBCore.Functions.Notify("This bike is not available for rent.", "error")
+        return
+    end
 
+    -- Register the bike as rented
     rentedBikes[plate] = {
-        owner = GetPlayerServerId(PlayerId()),
-        startTime = GetGameTimer(),
-        originalCoords = GetEntityCoords(bike),
-        originalHeading = GetEntityHeading(bike),
+        playerId = GetPlayerServerId(PlayerId()),
+        startTime = GetGameTimer() / 1000,
+        originalPosition = {x = coords.x, y = coords.y, z = coords.z, heading = heading} -- Store original position
     }
 
-    TriggerServerEvent('bikeRental:server:rentBike', plate, bikeModel)
-    QBCore.Functions.Notify("You have rented an E-Bike. Enjoy your ride!", "success")
+    -- Unlock and allow the player to ride the bike
+    FreezeEntityPosition(bike, false)
+    SetVehicleDoorsLocked(bike, 1) -- Unlock bike
+    SetPedIntoVehicle(PlayerPedId(), bike, -1)
+
+    -- Notify the player
+    QBCore.Functions.Notify("You have rented this bike. Enjoy your ride!", "success")
+
+    -- Trigger the server to track the rental
+    TriggerServerEvent('bikeRental:server:rentBike', plate, GetPlayerServerId(PlayerId()))
 end)
 
--- Return a bike
-registerEvent('bikeRental:client:returnBike', function(data)
+RegisterNetEvent('bikeRental:client:returnBike', function(data)
     local bike = data.entity
     local plate = GetVehicleNumberPlateText(bike)
 
-    if not rentedBikes[plate] then return end
+    -- Cooldown Check
+    if cooldowns[plate] and (GetGameTimer() - cooldowns[plate]) < 3000 then
+        QBCore.Functions.Notify("Action is on cooldown.", "error")
+        return
+    end
+    cooldowns[plate] = GetGameTimer() -- Set cooldown timer
 
-    local rental = rentedBikes[plate]
-    local rate = Config.RentalRate or 100
-    local interval = Config.BillingInterval or 5
-    local rentalDuration = (GetGameTimer() - rental.startTime) / 60000
-    local totalCharge = math.max(rate, math.floor(rentalDuration / interval) * rate)
+    -- Return Logic
+    if not rentedBikes[plate] or rentedBikes[plate].playerId ~= GetPlayerServerId(PlayerId()) then
+        QBCore.Functions.Notify("This is not your rental bike.", "error")
+        return
+    end
 
-    SetEntityCoords(bike, rental.originalCoords.x, rental.originalCoords.y, rental.originalCoords.z)
-    SetEntityHeading(bike, rental.originalHeading)
-    FreezeEntityPosition(bike, true)
-    SetVehicleDoorsLocked(bike, 10)
+    -- Move bike back to its original position
+    local originalPosition = rentedBikes[plate].originalPosition
+    SetEntityCoords(bike, originalPosition.x, originalPosition.y, originalPosition.z, false, false, false, true)
+    SetEntityHeading(bike, originalPosition.heading)
+    FreezeEntityPosition(bike, true) -- Keep the bike stationary
+    SetVehicleDoorsLocked(bike, 10) -- Lock the bike set as 10 so if lockpicked before rented CANT be driven other otions here https://docs.fivem.net/natives/?_0xB664292EAECF7FA6
 
-    TriggerServerEvent('bikeRental:server:returnBike', plate, totalCharge)
+    -- Process return
+    TriggerServerEvent('bikeRental:server:returnBike', plate, rentedBikes[plate].startTime)
     rentedBikes[plate] = nil
-    QBCore.Functions.Notify("E-Bike returned.")
+    QBCore.Functions.Notify("Bike returned successfully.", "success")
 end)
 
--- Setup bike rental points on startup
-CreateThread(function()
-    ensureModelLoaded(bikeModelHash)
+RegisterCommand('cancelEmoteTest', function()
+    ClearPedTasksImmediately(PlayerPedId())
+end, false)
 
-    for _, target in pairs(bikeRentalTargets) do
-        if target.model and target.coords then
-            local bike = spawnBike(target)
-            setupBikeInteractions(bike, target.coords)
+RegisterNetEvent('bikeRental:client:toggleLock', function(data)
+    local bike = data.entity
+    local plate = GetVehicleNumberPlateText(bike)
+    local playerPed = PlayerPedId()
+    local bikeCoords = GetEntityCoords(bike)
+
+    -- Ensure the player owns the bike
+    if not rentedBikes[plate] or rentedBikes[plate].playerId ~= GetPlayerServerId(PlayerId()) then
+        QBCore.Functions.Notify("You do not own this bike.", "error")
+        return
+    end
+
+    -- Move the player to the bike
+    TaskGoToCoordAnyMeans(playerPed, bikeCoords.x, bikeCoords.y, bikeCoords.z, 1.0, 0, 0, 786603, 0.0)
+    local timeout = 5000 -- 5 seconds to walk to the bike
+    local startTime = GetGameTimer()
+
+    -- Wait until the player is near the bike or timeout occurs
+    while #(GetEntityCoords(playerPed) - bikeCoords) > 1.5 do
+        Wait(100)
+        if GetGameTimer() - startTime > timeout then
+            QBCore.Functions.Notify("Could not reach the bike.", "error")
+            return
         end
     end
+
+    -- Make the player face the bike
+    TaskTurnPedToFaceEntity(playerPed, bike, 1000)
+    Wait(1000) -- Allow time for the player to face the bike
+
+    -- Trigger the mechanic3 emote
+    ExecuteCommand('e mechanic3') -- Trigger the custom emote system
+    Wait(3000) -- Wait for the emote duration
+
+    -- Toggle lock state
+    local currentLockState = GetVehicleDoorLockStatus(bike)
+    local newLockState = (currentLockState == 1) and 10 or 1 -- Toggle between unlocked (1) and locked (10)
+    SetVehicleDoorsLocked(bike, newLockState)
+
+    -- Notify the player
+    QBCore.Functions.Notify(
+        newLockState == 10 and "Bike locked." or "Bike unlocked.",
+        "success"
+    )
+
+    -- Cancel the emote
+    ExecuteCommand('e c') -- Cancel the custom emote system
+    Wait(500) -- Small delay to ensure /e c processes
+    ClearPedTasksImmediately(playerPed) -- Backup to force clear animations
 end)

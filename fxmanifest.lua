@@ -6,6 +6,7 @@ author 'TyronSmiteApril'
 description 'TSA E-Bike Rental'
 version '3.2.1'
 
+
 client_scripts {
     'config.lua',
     'client/main.lua'
@@ -17,6 +18,10 @@ server_scripts {
     'server/sv_version_check.lua'
 }
 
+shared_scripts {
+    'config.lua'
+}
+
 dependencies {
     'qb-core',
     'qb-target'
@@ -25,3 +30,5 @@ dependencies {
 optional_dependencies {
     'ox-target'
 }
+
+lua54 'yes'
